@@ -14,7 +14,7 @@ import (
  */
 
 var userListServer []User
-var PATH = "/home/me/" + syscall.GetUser() + "/"
+var PATH = "/home/me/"
 
 func init() {
 	SetupMyRpcmakeAccounts(makeAccounts)
@@ -48,22 +48,24 @@ func getBalance(user User) MyRpcProcedure {
 
 // Function to transfer balance between users
 func transfer(user1 User, user2 User, amt int64) MyRpcProcedure {
+	log.Printf("MyRpcService : transfer called\n")
 	if user1.UserBalance >= amt {
 		user1.UserBalance -= amt
 		user2.UserBalance += amt
 		log.Printf("Amount transferred between %v and %v\n", user1.UserID, user2.UserID)
 	} else {
-		log.Printf("Could not transfer, negative\n")
+		log.Fatalf("Could not transfer, negative balance for User ID: %v\n", user1.UserID)
 	}
 
-	return &MyRpctransferReply{user1.UserBalance, user2.UserBalance}
+	return &MyRpctransferReply{user1, user2}
 }
 
 // Function to write user to file
 func writeUser(user User) MyRpcProcedure {
-	status := altEthos.Write(PATH+"user-"+strconv.Itoa(int(user.UserID)), &user)
+	log.Printf("MyRpcService : writeUser called for path::: %s\n", PATH)
+	status := altEthos.Write(PATH+"users_"+strconv.Itoa(int(user.UserID)), &user)
 	if status != syscall.StatusOk {
-		log.Fatalf("Failed to write for ID: %v/%v\n", user.UserID, status)
+		log.Fatalf("Failed to write for ID: %v / %v\n", user.UserID, status)
 		return nil
 	}
 

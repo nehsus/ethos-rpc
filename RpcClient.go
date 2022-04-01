@@ -35,8 +35,8 @@ func getBalanceReply(userID int64, userBalance int64) MyRpcProcedure {
 }
 
 // Reply for transferring balance
-func transferReply(amt1 int64, amt2 int64) MyRpcProcedure {
-	log.Printf("First user has balance : %v and second user has balance: %v\n", amt1, amt2)
+func transferReply(user1 User, user2 User) MyRpcProcedure {
+	log.Printf("User %v has balance : %v and User %v has balance: %v\n", user1.UserID, user1.UserBalance, user2.UserID, user2.UserBalance)
 	return nil
 }
 
@@ -85,6 +85,19 @@ func main() {
 			}
 
 			call := MyRpctransfer{usersList[i], usersList[i+1], int64(100)}
+			status = altEthos.ClientCall(fd, &call)
+		}
+
+		// Write users to FS
+
+		for _, user := range usersList {
+			fd, status = altEthos.IpcRepeat("MyRpc", "", nil)
+			if status != syscall.StatusOk {
+				log.Printf("Ipc_failed:_%v\n", status)
+				altEthos.Exit(status)
+			}
+
+			call := MyRpcwriteUser{user}
 			status = altEthos.ClientCall(fd, &call)
 		}
 	}
