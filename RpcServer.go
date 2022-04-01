@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+/**
+ * RPC Server for Users.
+ *
+ * @author Sushen Kumar <skumar88@uic.edu>
+ */
+
 var userListServer []User
 var PATH = "/home/me/" + syscall.GetUser() + "/"
 
@@ -17,16 +23,7 @@ func init() {
 	SetupMyRpcwriteUser(writeUser)
 }
 
-func generateID() int64 {
-	r := syscall.GetTime()
-	return int64(((r * 7621) + 1) % 32768)
-}
-
-func generateBalance() int64 {
-	r := syscall.GetTime()
-	return int64(((r * 7621) + 1) % 32768)
-}
-
+// Function to create accounts
 func makeAccounts(count int64) MyRpcProcedure {
 
 	for i := 0; i < int(count); i++ {
@@ -42,12 +39,14 @@ func makeAccounts(count int64) MyRpcProcedure {
 	return &MyRpcmakeAccountsReply{userListServer}
 }
 
+// Function to get balance for user
 func getBalance(user User) MyRpcProcedure {
 	log.Printf("MyRpcService : getBalance called\n")
 
 	return &MyRpcgetBalanceReply{user.UserID, user.UserBalance}
 }
 
+// Function to transfer balance between users
 func transfer(user1 User, user2 User, amt int64) MyRpcProcedure {
 	if user1.UserBalance >= amt {
 		user1.UserBalance -= amt
@@ -60,6 +59,7 @@ func transfer(user1 User, user2 User, amt int64) MyRpcProcedure {
 	return &MyRpctransferReply{user1.UserBalance, user2.UserBalance}
 }
 
+// Function to write user to file
 func writeUser(user User) MyRpcProcedure {
 	status := altEthos.Write(PATH+"user-"+strconv.Itoa(int(user.UserID)), &user)
 	if status != syscall.StatusOk {
@@ -70,6 +70,19 @@ func writeUser(user User) MyRpcProcedure {
 	return &MyRpcwriteUserReply{user.UserID}
 }
 
+// Helper function to generate unique ID
+func generateID() int64 {
+	r := syscall.GetTime()
+	return int64(((r * 7621) + 1) % 32768)
+}
+
+// Helper function to generate unique balance
+func generateBalance() int64 {
+	r := syscall.GetTime()
+	return int64(((r * 7621) + 1) % 32768)
+}
+
+// Main function
 func main() {
 
 	altEthos.LogToDirectory("test/rpcServer")
